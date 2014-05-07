@@ -54,10 +54,19 @@ describe "UserPages" do
 
 	describe "profile page" do
 		let(:user) { FactoryGirl.create(:user) }
+		let!(:m1) { FactoryGirl.create(:micropost, user: user, content: "Foo") }
+		let!(:m2) { FactoryGirl.create(:micropost, user: user, content: "Bar") }
+
 		before { visit user_path(user) }
 
 		it { should have_content(user.name) }
 		it { should have_title(user.name) }
+
+		describe "microposts" do
+			it { should have_content(m1.content) }
+			it { should have_content(m2.content) }
+			it { should have_content(user.microposts.count) }
+		end
 	end
 
 	describe "signup page" do
@@ -157,26 +166,5 @@ describe "UserPages" do
 			end
 			specify { expect(user.reload).not_to be_admin }
 		end
-	end
-
-	describe "a logged in user should be redirected to root url if attempting 'new' action" do
-		let(:user) { FactoryGirl.create(:user) }
-		before do
-			sign_in user, no_capybara: true
-			get new_user_path
-		end
-		specify { expect(response).to redirect_to(root_url) }
-	end
-
-	describe "a logged in user should be redirected to root url if attempting 'create' action" do
-		let(:params) do
-			{ user: { name: "Test", email: "test@example.com", password: "password", password_confirmation: "password" } }
-		end
-		let(:user) { FactoryGirl.create(:user) }
-		before do
-			sign_in user, no_capybara: true
-			post users_path, params
-		end
-		specify { expect(response).to redirect_to(root_url) }
 	end
 end

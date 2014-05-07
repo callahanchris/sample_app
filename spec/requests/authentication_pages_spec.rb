@@ -41,6 +41,27 @@ describe "Authentication" do
 				before { click_link "Sign out" }
 				it { should have_link('Sign in') }
 			end
+
+			describe "a logged in user should be redirected to root url if attempting 'new' action" do
+				let(:user) { FactoryGirl.create(:user) }
+				before do
+					sign_in user, no_capybara: true
+					get new_user_path
+				end
+				specify { expect(response).to redirect_to(root_url) }
+			end
+
+			describe "a logged in user should be redirected to root url if attempting 'create' action" do
+				let(:params) do
+					{ user: { name: "Test", email: "test@example.com", password: "password", password_confirmation: "password" } }
+				end
+				let(:user) { FactoryGirl.create(:user) }
+				before do
+					sign_in user, no_capybara: true
+					post users_path, params
+				end
+				specify { expect(response).to redirect_to(root_url) }
+			end
 		end
 	end
 
@@ -70,6 +91,19 @@ describe "Authentication" do
 						it "should render the default (profile) page" do
 							expect(page).to have_title(user.name)
 						end
+					end
+				end
+			
+				describe "in the Microposts controller" do
+
+					describe "submitting to the create action" do
+						before { post microposts_path }
+						specify { expect(response).to redirect_to(signin_path) }
+					end
+
+					describe "submitting to the destroy action" do
+						before { delete micropost_path(FactoryGirl.create(:micropost)) }
+						specify { expect(response).to redirect_to(signin_path) }
 					end
 				end
 			end
